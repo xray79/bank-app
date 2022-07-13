@@ -157,9 +157,9 @@ const displayMovements = function (acc, sort = false) {
       i + 1
     } ${type}</div>
           <div class="movements__date">${displayDate}</div>
-          <div class="movements__value movements__value--${type}">${mov.toFixed(
+          <div class="movements__value movements__value--${type}">£${mov.toFixed(
       2
-    )}€</div>
+    )}</div>
         </div>
     `;
     containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -172,7 +172,7 @@ const displayMovements = function (acc, sort = false) {
  */
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
+  labelBalance.textContent = `£${acc.balance.toFixed(2)}`;
 };
 
 /**
@@ -193,13 +193,13 @@ const calcDisplaySummary = function (account) {
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
   incomes = roundTwoDecimals(incomes);
-  labelSumIn.textContent = `${incomes}€`;
+  labelSumIn.textContent = `£${incomes}`;
 
   let out = account.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
   out = roundTwoDecimals(out);
-  labelSumOut.textContent = `${out}€`;
+  labelSumOut.textContent = `£${out}`;
 
   let interest = account.movements
     .filter(mov => mov > 0)
@@ -207,7 +207,7 @@ const calcDisplaySummary = function (account) {
     .filter(int => int >= 1)
     .reduce((acc, mov) => acc + mov, 0);
   interest = roundTwoDecimals(interest);
-  labelSumInterest.textContent = `${interest}€`;
+  labelSumInterest.textContent = `£${interest}`;
 };
 
 /**

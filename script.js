@@ -225,7 +225,7 @@ const updateUI = function (acc) {
   calcDisplaySummary(currentAccount);
 };
 
-// Internationalisation api, set for login label
+// Intl api, set for login label
 const now = new Date();
 const options = {
   hour: 'numeric',

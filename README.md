@@ -27,3 +27,13 @@ e.g. Cannot get £100 loan without a single £1000 deposit.
 
 Close your account by entering your username and pin number.  
 You will be logged out immediately and will not be able to log in until the page is refreshed.
+
+### Additional functionality
+
+Toggle between chronological and descending transaction value by clicking the sort button
+
+Inactivity timer that will Log out the user if no activity is detected in 5 mins
+
+Localisation of accounts using the Intl API.  
+User jd uses the american format for dates and USD for transactions.  
+User ih uses UK format and GBP for transactions.

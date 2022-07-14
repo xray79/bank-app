@@ -49,8 +49,8 @@ const account1 = {
     '2022-07-12T23:36:17.929Z',
     '2022-07-01T10:51:36.790Z',
   ],
-  currency: 'EUR',
-  locale: 'pt-PT', // de-DE
+  currency: 'GBP',
+  locale: 'en-GB',
 };
 
 // Helper function to modify dates
@@ -123,19 +123,22 @@ const calcDaysPassed = function (date1, date2) {
   return Math.round(Math.abs(date1 - date2) / (1000 * 60 * 60 * 24));
 };
 
-const formatMovementDate = function (date) {
+const formatMovementDate = function (date, locale) {
   const today = new Date();
   const daysPassed = calcDaysPassed(today, date);
-  // console.log(daysPassed);
-  if (daysPassed === 0) {
-    return 'Today';
-  } else if (daysPassed === 1) {
-    return 'Yesterday';
-  } else if (daysPassed <= 7) {
-    return `${daysPassed} days ago`;
-  } else {
-    return `${date.toLocaleDateString()}`;
-  }
+
+  if (daysPassed === 0) return 'Today';
+  if (daysPassed === 1) return 'Yesterday';
+  if (daysPassed <= 7) return `${daysPassed} days ago`;
+
+  return new Intl.DateTimeFormat(locale).format(date);
+};
+
+const formatCurrency = (value, locale, currency) => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(value);
 };
 
 const displayMovements = function (acc, sort = false) {
@@ -148,8 +151,12 @@ const displayMovements = function (acc, sort = false) {
   movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
+    // Movements dates
     const movDate = new Date(acc.movementsDates[i]);
-    const displayDate = formatMovementDate(movDate);
+    const displayDate = formatMovementDate(movDate, acc.locale);
+
+    // Movement amounts
+    const formattedMov = formatCurrency(mov, acc.locale, acc.currency);
 
     const html = `
         <div class="movements__row">
@@ -157,9 +164,7 @@ const displayMovements = function (acc, sort = false) {
       i + 1
     } ${type}</div>
           <div class="movements__date">${displayDate}</div>
-          <div class="movements__value movements__value--${type}">£${mov.toFixed(
-      2
-    )}</div>
+          <div class="movements__value movements__value--${type}">${formattedMov}</div>
         </div>
     `;
     containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -172,7 +177,11 @@ const displayMovements = function (acc, sort = false) {
  */
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `£${acc.balance.toFixed(2)}`;
+  labelBalance.textContent = formatCurrency(
+    acc.balance,
+    acc.locale,
+    acc.currency
+  );
 };
 
 /**
@@ -192,22 +201,22 @@ const calcDisplaySummary = function (account) {
   let incomes = account.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
-  incomes = roundTwoDecimals(incomes);
-  labelSumIn.textContent = `£${incomes}`;
+  incomes = formatCurrency(incomes, account.locale, account.currency);
+  labelSumIn.textContent = `${incomes}`;
 
   let out = account.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
-  out = roundTwoDecimals(out);
-  labelSumOut.textContent = `£${out}`;
+  out = formatCurrency(Math.abs(out), account.locale, account.currency);
+  labelSumOut.textContent = `${out}`;
 
   let interest = account.movements
     .filter(mov => mov > 0)
     .map(mov => (mov * account.interestRate) / 100)
     .filter(int => int >= 1)
     .reduce((acc, mov) => acc + mov, 0);
-  interest = roundTwoDecimals(interest);
-  labelSumInterest.textContent = `£${interest}`;
+  interest = formatCurrency(interest, account.locale, account.currency);
+  labelSumInterest.textContent = `${interest}`;
 };
 
 /**
@@ -245,15 +254,11 @@ const updateUI = function (acc) {
 
 // Functions - event handlers
 // Dev - always logged in
-// currentAccount = account1;
-// updateUI(currentAccount);
-// containerApp.style.opacity = 100;
+currentAccount = account1;
+updateUI(currentAccount);
+containerApp.style.opacity = 100;
 
-// Date - top label
-// const now = new Date();
-// labelDate.textContent = `${now.toLocaleDateString()}, ${now.toLocaleTimeString()}`;
-
-// experimenting intl api
+// Internationalisation api
 const now = new Date();
 const options = {
   hour: 'numeric',
@@ -335,7 +340,6 @@ btnClose.addEventListener('click', function (e) {
       acc => currentAccount.username === acc.username
     );
     accounts.splice(index, 1);
-    // console.log(accounts);
     containerApp.style.opacity = 0;
   }
   inputCloseUsername.value = inputClosePin.value = '';

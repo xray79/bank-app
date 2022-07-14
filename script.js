@@ -1,42 +1,10 @@
 'use strict';
 
-// Data
-// Accounts without date info
-// const account1 = {
-//   owner: 'Ibnul Huq',
-//   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
-//   interestRate: 1.2, // %
-//   pin: 1111,
-// };
-
-// const account2 = {
-//   owner: 'Jessica Davis',
-//   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
-//   interestRate: 1.5,
-//   pin: 2222,
-// };
-
-// const account3 = {
-//   owner: 'Steven Thomas Williams',
-//   movements: [200, -200, 340, -300, -20, 50, 400, -460],
-//   interestRate: 0.7,
-//   pin: 3333,
-// };
-
-// const account4 = {
-//   owner: 'Sarah Smith',
-//   movements: [430, 1000, 700, 50, 90],
-//   interestRate: 1,
-//   pin: 4444,
-// };
-
-// const accounts = [account1, account2, account3, account4];
-
 // Accounts with date info
 const account1 = {
   owner: 'Ibnul Huq',
   movements: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
-  interestRate: 1.2, // %
+  interestRate: 1.2,
   pin: 1111,
 
   movementsDates: [
@@ -60,6 +28,7 @@ const modifyDate = n => {
   return date.toISOString();
 };
 
+// Modify dates to today, yesterday, 3 days ago, 6 days ago
 account1.movementsDates[7] = modifyDate(0);
 account1.movementsDates[6] = modifyDate(1);
 account1.movementsDates[5] = modifyDate(3);
@@ -118,11 +87,13 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 // Functions
+// Days passed
 const calcDaysPassed = function (date1, date2) {
   // calc days passed, divide by ms * s *  d * h
   return Math.round(Math.abs(date1 - date2) / (1000 * 60 * 60 * 24));
 };
 
+// Format dates
 const formatMovementDate = function (date, locale) {
   const today = new Date();
   const daysPassed = calcDaysPassed(today, date);
@@ -134,6 +105,7 @@ const formatMovementDate = function (date, locale) {
   return new Intl.DateTimeFormat(locale).format(date);
 };
 
+// Format currencies
 const formatCurrency = (value, locale, currency) => {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
@@ -141,6 +113,7 @@ const formatCurrency = (value, locale, currency) => {
   }).format(value);
 };
 
+// Display each movement as a new element
 const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = '';
 
@@ -235,7 +208,7 @@ const createUserNames = function (accounts) {
 };
 createUserNames(accounts);
 
-let currentAccount;
+let currentAccount, timer;
 
 /**
  * Updates UI based on changes to the current account
@@ -252,13 +225,7 @@ const updateUI = function (acc) {
   calcDisplaySummary(currentAccount);
 };
 
-// Functions - event handlers
-// Dev - always logged in
-// currentAccount = account1;
-// updateUI(currentAccount);
-// containerApp.style.opacity = 100;
-
-// Internationalisation api
+// Internationalisation api, set for login label
 const now = new Date();
 const options = {
   hour: 'numeric',
@@ -269,6 +236,34 @@ const options = {
 };
 const locale = navigator.language;
 labelDate.textContent = new Intl.DateTimeFormat(locale, options).format(now);
+
+// Log out timer
+const startLogOutTimer = function () {
+  // set time to 5 mins
+  let time = 5 * 60;
+
+  const tickCallback = function () {
+    // calc mins and seconds
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(Math.trunc(time % 60)).padStart(2, 0);
+
+    // in each call, print the remaining time to UI
+    labelTimer.textContent = `${min}:${sec}`;
+
+    // when 0, stop timer and log out
+    if (time === 0) {
+      clearInterval(timer);
+      containerApp.style.opacity = 0;
+    }
+
+    time--;
+  };
+
+  // call timer every second
+  tickCallback();
+  const timer = setInterval(tickCallback, 1000);
+  return timer;
+};
 
 // Login
 btnLogin.addEventListener('click', function (e) {
@@ -288,6 +283,11 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur(); // .blur() = lose focus on input field
 
+    // Log out timer
+    if (timer) clearInterval(timer);
+    timer = startLogOutTimer();
+
+    // Update UI
     updateUI(currentAccount);
   }
 });
@@ -323,6 +323,10 @@ btnTransfer.addEventListener('click', function (e) {
     // Clear inputs
     inputTransferAmount.value = inputTransferTo.value = '';
 
+    // Reset timer
+    clearInterval(timer);
+    timer = startLogOutTimer();
+
     // Rerender UI
     updateUI(currentAccount);
   }
@@ -357,6 +361,10 @@ btnLoan.addEventListener('click', function (e) {
 
     // add current date
     currentAccount.movementsDates.push(new Date().toISOString());
+
+    // Reset timer
+    clearInterval(timer);
+    timer = startLogOutTimer();
 
     // show loan
     updateUI(currentAccount);

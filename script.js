@@ -254,9 +254,9 @@ const updateUI = function (acc) {
 
 // Functions - event handlers
 // Dev - always logged in
-currentAccount = account1;
-updateUI(currentAccount);
-containerApp.style.opacity = 100;
+// currentAccount = account1;
+// updateUI(currentAccount);
+// containerApp.style.opacity = 100;
 
 // Internationalisation api
 const now = new Date();
